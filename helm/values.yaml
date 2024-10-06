@@ -1,0 +1,25 @@
+image:
+  repository: your-docker-repo/ip-tracker
+  tag: latest
+  pullPolicy: IfNotPresent
+
+schedule: "0 0 * * *" # Runs daily at midnight
+
+jobHistoryLimit: 3
+
+resources:
+  limits:
+    cpu: "100m"
+    memory: "128Mi"
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+
+env:
+  notionToken: ""
+  notionPageID: ""
+  ipServices: "https://api.ipify.org,https://ipv4.icanhazip.com"
+
+envFromSecret: true
+
+timezone: "UTC"

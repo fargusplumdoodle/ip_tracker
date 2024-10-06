@@ -1,0 +1,45 @@
+# ip-tracker-chart/templates/cronjob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "ip-tracker.fullname" . }}
+  labels:
+    {{- include "ip-tracker.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.schedule }}"
+  jobTemplate:
+    spec:
+      backoffLimit: 4
+      successfulJobsHistoryLimit: {{ .Values.jobHistoryLimit }}
+      failedJobsHistoryLimit: {{ .Values.jobHistoryLimit }}
+      template:
+        metadata:
+          labels:
+            {{- include "ip-tracker.labels" . | nindent 8 }}
+        spec:
+          containers:
+            - name: {{ .Chart.Name }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              env:
+                - name: NOTION_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "ip-tracker.fullname" . }}-secret
+                      key: NOTION_TOKEN
+                - name: NOTION_PAGE_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "ip-tracker.fullname" . }}-secret
+                      key: NOTION_PAGE_ID
+                - name: IP_SERVICES
+                  value: "{{ .Values.env.ipServices }}"
+              resources:
+                limits:
+                  cpu: {{ .Values.resources.limits.cpu }}
+                  memory: {{ .Values.resources.limits.memory }}
+                requests:
+                  cpu: {{ .Values.resources.requests.cpu }}
+                  memory: {{ .Values.resources.requests.memory }}
+          restartPolicy: OnFailure
+

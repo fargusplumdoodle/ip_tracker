@@ -1,0 +1,42 @@
+#!/bin/bash
+source .env 
+
+APP=ip-tracker  
+
+if [ -z "$IMAGE" ]; then
+  echo "The IMAGE variable is not set. Use this to set the name/destination for the image. Exiting..."
+  exit 1
+fi
+
+NAME=${APP}
+RESET=false
+BUILD=true
+
+set -e
+
+for arg in "${@:1}"; do
+  if [ "$arg" == '--reset' ]; then
+    RESET=true
+  elif [ "$arg" == '--no-build' ]; then
+    BUILD=false
+  fi
+done
+
+if [ "$RESET" == "true" ]; then
+  helm uninstall $NAME -n $NAME || true 2> /dev/null
+fi
+
+if [ "$BUILD" == "true" ]; then
+  ./scripts/build_and_push
+fi
+
+helm upgrade \
+  $NAME \
+  ./helm \
+  --install \
+  --create-namespace \
+  --set image.repository=$IMAGE \
+  --set env.notionToken=$NOTION_TOKEN \
+  --set env.notionPageID=$NOTION_PAGE_ID \
+  --namespace $NAMESPACE
+
