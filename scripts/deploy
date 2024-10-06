@@ -3,8 +3,8 @@ source .env
 
 APP=ip-tracker  
 
-if [ -z "$IMAGE" ]; then
-  echo "The IMAGE variable is not set. Use this to set the name/destination for the image. Exiting..."
+if [ -z "$IMAGE" ] || [ -z "$TAG" ]; then
+  echo "Check your .env file. The IMAGE and TAG variables are not set. Exiting..."
   exit 1
 fi
 
@@ -36,6 +36,7 @@ helm upgrade \
   --install \
   --create-namespace \
   --set image.repository=$IMAGE \
+  --set image.tag=$TAG \
   --set env.notionToken=$NOTION_TOKEN \
   --set env.notionPageID=$NOTION_PAGE_ID \
   --namespace $NAMESPACE

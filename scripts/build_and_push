@@ -3,15 +3,17 @@ CONTAINER_NAME=ip_tracker
 
 source .env
 
-if [ -z "$IMAGE" ]; then
-  echo "The IMAGE variable is not set. Use this to set the name/destination for the image. Exiting..."
+if [ -z "$IMAGE" ] || [ -z "$TAG" ]; then
+  echo "Check your .env file. The IMAGE and TAG variables are not set. Exiting..."
   exit 1
 fi
 
-docker build \
+docker buildx build \
   --cache-from=$IMAGE:latest \
+  --platform linux/amd64,linux/arm64 \
    --output=type=registry,registry.insecure=true \
   -f ./Dockerfile \
+  -t $IMAGE:$TAG \
   -t $IMAGE:latest \
   --push \
   .
