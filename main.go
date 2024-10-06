@@ -58,11 +58,27 @@ func main() {
 	// Initialize Notion client.
 	notionClient := NewNotionClient(notionToken, notionPageID)
 
-	// Update Notion page with the IP address.
-	err = notionClient.UpdatePage(ip)
+	// Fetch the latest stored IP from Notion.
+	latestIP, err := notionClient.GetLatestIP()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to update Notion page with IP address")
+		log.Error().Err(err).Msg("Failed to fetch the latest IP from Notion")
+		// Decide whether to proceed or exit based on requirements.
+		// Here, we'll proceed to append the new IP.
+	} else {
+		log.Info().Str("LatestIP", latestIP).Msg("Fetched the latest IP from Notion")
 	}
 
-	log.Info().Msg("IP address successfully updated in Notion.")
+	// Compare the current IP with the latest stored IP.
+	if latestIP != ip {
+		// IP has changed, append the new IP to Notion.
+		currentTime := time.Now()
+		err := notionClient.AppendIP(ip, currentTime)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Failed to append new IP to Notion")
+		}
+		log.Info().Str("IPv4", ip).Msg("New IP appended to Notion")
+	} else {
+		// IP has not changed, no action needed.
+		log.Info().Str("IPv4", ip).Msg("IP has not changed. No update needed.")
+	}
 }
